@@ -59,30 +59,32 @@
             generateColor() {
                 this.colors = []
                 let count = parseInt(this.count)+1;
-                const start = this.hexToRGB(this.from);
-                const end = this.hexToRGB(this.to);
+                const start = this.hexToRGBA(this.from);
+                const end = this.hexToRGBA(this.to);
 
                 const average = end.map((val, i) => ((val - start[i]) / count));
 
                 for (let i = 0; i <= count; i++) {
-                    let temp = start.map((val, k) => Math.round(val + (average[k] * i)));
-                    this.colors.push(this.generateOutput(temp));
+                    let temp = start.map((val, k) => k < 3 ? Math.round(val + (average[k] * i)) : (val + (average[k] * i)).toFixed(3));
+                    this.colors.push(this.RGBAToHex(temp));
                 }
             },
 
-            hexToRGB(hex) {
-                return (hex = hex.replace('#', '')).match(new RegExp('(.{'+hex.length/3+'})', 'g')).map(function(l) { return parseInt(hex.length%2 ? l+l : l, 16) })
+            hexToRGBA(hex) {
+              hex = hex.charAt(0) === '#' ? hex.slice(1) : hex;
+              return [
+                parseInt(hex.slice(0, 2), 16),
+                parseInt(hex.slice(2, 4), 16),
+                parseInt(hex.slice(4, 6), 16),
+                +((parseInt(hex.slice(6,8) || 'ff', 16) / 255).toFixed(2)),
+              ]
             },
 
-            RGBToHex(rgb) {
-                return '#' + rgb.map(x => {
-                    const hex = x.toString(16)
+            RGBAToHex(rgba) {
+                return '#' + rgba.map((x,i) => {
+                    const hex = (i < 3 ? x : Math.floor(x * 255)).toString(16)
                     return hex.length === 1 ? '0' + hex : hex
                 }).join('')
-            },
-
-            generateOutput(RGBArray) {
-                return this.RGBToHex(RGBArray);
             },
 
             toogleFromPicker() {
@@ -115,23 +117,12 @@
             },
 
             updateFromPicker(color) {
-                if(color.rgba.a == 1) {
-                    this.from = color.hex;
-                }
-                else {
-                    this.from = 'rgba(' + color.rgba.r + ', ' + color.rgba.g + ', ' + color.rgba.b + ', ' + color.rgba.a + ')';
-                }
-
+                this.from = color.hex8;
                 this.generateColor()
             },
 
             updateToPicker(color) {
-                if(color.rgba.a == 1) {
-                    this.to = color.hex;
-                }
-                else {
-                    this.to = 'rgba(' + color.rgba.r + ', ' + color.rgba.g + ', ' + color.rgba.b + ', ' + color.rgba.a + ')';
-                }
+                this.to = color.hex8;
                 this.generateColor()
             },
 
